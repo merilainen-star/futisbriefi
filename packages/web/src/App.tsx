@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   OUTCOME_CODE,
   OUTCOME_FI,
@@ -11,18 +11,27 @@ import { formatKickoff, pct, scoreline } from './format.ts';
 export function App() {
   const [doc, setDoc] = useState<BriefingDoc | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      // BASE_URL is '/' in dev and '/<repo>/' on GitHub Pages — keep the fetch
+      // relative to it so the briefing loads under the project path.
+      const r = await fetch(`${import.meta.env.BASE_URL}briefing.json`, { cache: 'no-cache' });
+      if (!r.ok) throw new Error(`briefing.json → ${r.status}`);
+      setDoc(await r.json());
+      setError(null);
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // BASE_URL is '/' in dev and '/<repo>/' on GitHub Pages — keep the fetch
-    // relative to it so the briefing loads under the project path.
-    fetch(`${import.meta.env.BASE_URL}briefing.json`, { cache: 'no-cache' })
-      .then((r) => {
-        if (!r.ok) throw new Error(`briefing.json → ${r.status}`);
-        return r.json();
-      })
-      .then(setDoc)
-      .catch((e) => setError(String(e)));
-  }, []);
+    void load();
+  }, [load]);
 
   if (error) return <main className="wrap"><p className="error">Virhe: {error}</p></main>;
   if (!doc) return <main className="wrap"><p className="muted">Ladataan briefiä…</p></main>;
@@ -30,7 +39,18 @@ export function App() {
   return (
     <main className="wrap">
       <header className="head">
-        <h1>Futisbriefi</h1>
+        <div className="head-row">
+          <h1>Futisbriefi</h1>
+          <button
+            className="refresh"
+            onClick={() => void load()}
+            disabled={loading}
+            aria-label="Päivitä briefi"
+          >
+            <span className={loading ? 'spin' : ''} aria-hidden="true">↻</span>{' '}
+            {loading ? 'Päivitetään…' : 'Päivitä'}
+          </button>
+        </div>
         <p className="muted">
           MM 2026 · {doc.date} · ikkuna klo 18:00 (Helsinki) · {doc.cards.length} ottelua
         </p>
