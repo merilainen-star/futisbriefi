@@ -9,6 +9,9 @@ coverage/
 .env.*
 !.env.example
 
+# Generated briefing artifact (produced by `npm run briefing`)
+packages/web/public/briefing.json
+
 # Local data store
 data/*.db
 data/*.db-shm

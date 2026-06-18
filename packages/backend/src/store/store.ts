@@ -1,6 +1,9 @@
 import { mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
+// Type-only import (erased before Vite resolves it); the runtime value comes from
+// the createRequire call below.
+import type { DatabaseSync as SqliteDatabase } from 'node:sqlite';
 import type { Briefing, Match, Odds, Pick, Result } from '@fm2026/core';
 import { SCHEMA } from './schema.js';
 
@@ -15,7 +18,7 @@ const { DatabaseSync } = nodeRequire('node:sqlite') as typeof import('node:sqlit
  * One row per entity; teams are stored home-first (FIFA order).
  */
 export class Store {
-  private readonly db: DatabaseSync;
+  private readonly db: SqliteDatabase;
 
   constructor(dbPath: string) {
     if (dbPath !== ':memory:') {

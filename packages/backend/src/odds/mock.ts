@@ -43,6 +43,17 @@ export class MockOddsProvider implements OddsProvider {
         away: 4.6,
         bookmaker: 'MockBook',
       },
+      {
+        // Matches the captured FotMob sample so the demo card shows real
+        // lineups/injuries alongside (mock) odds.
+        homeTeam: 'Crystal Palace',
+        awayTeam: 'Manchester City',
+        commenceUtc: inHours(4),
+        home: 6.5,
+        draw: 4.5,
+        away: 1.5,
+        bookmaker: 'MockBook',
+      },
     ];
 
     return rows.map((r) => ({ ...r, source: this.name, capturedAt }));

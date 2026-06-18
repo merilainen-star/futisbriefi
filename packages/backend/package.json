@@ -8,6 +8,7 @@
     "odds": "tsx src/cli/odds.ts",
     "fotmob": "tsx src/cli/fotmob.ts",
     "seed": "tsx src/cli/seed.ts",
+    "briefing": "tsx src/cli/briefing.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

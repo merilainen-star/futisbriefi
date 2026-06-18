@@ -30,5 +30,13 @@
     "awayTeam": "Serbia",
     "koUtc": "2026-06-17T18:00:00.000Z",
     "venue": "AT&T Stadium"
+  },
+  {
+    "fotmobId": "4193843",
+    "group": "Esimerkki (FotMob-data)",
+    "homeTeam": "Crystal Palace",
+    "awayTeam": "Manchester City",
+    "koUtc": "2026-06-18T17:00:00.000Z",
+    "venue": "Selhurst Park"
   }
 ]
