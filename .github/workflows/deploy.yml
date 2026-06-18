@@ -1,0 +1,65 @@
+name: Build & deploy briefing
+
+# Runs the live pipeline daily at 18:00 Europe/Helsinki and publishes the PWA to
+# GitHub Pages. During the World Cup, Helsinki is EEST (UTC+3) with no DST change,
+# so 18:00 Helsinki == 15:00 UTC, a fixed cron.
+on:
+  schedule:
+    - cron: '0 15 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Don't let an overlapping run clobber a deploy.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+
+      - name: Build briefing JSON (live)
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          ODDS_PROVIDER: theoddsapi
+          ODDS_SPORT_KEY: soccer_fifa_world_cup
+          ODDS_REGIONS: eu
+          ODDS_MARKETS: h2h,totals
+          FOTMOB_CLIENT: json
+          APP_TZ: Europe/Helsinki
+          DB_PATH: ./data/fm2026.db
+          TZ: Europe/Helsinki
+        run: npm -w @fm2026/backend run briefing -- live
+
+      - name: Compute Pages base path
+        run: echo "BASE_PATH=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_ENV"
+
+      - name: Build PWA
+        run: npm -w @fm2026/web run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: packages/web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
