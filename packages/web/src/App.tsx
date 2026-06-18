@@ -13,7 +13,9 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/briefing.json', { cache: 'no-cache' })
+    // BASE_URL is '/' in dev and '/<repo>/' on GitHub Pages — keep the fetch
+    // relative to it so the briefing loads under the project path.
+    fetch(`${import.meta.env.BASE_URL}briefing.json`, { cache: 'no-cache' })
       .then((r) => {
         if (!r.ok) throw new Error(`briefing.json → ${r.status}`);
         return r.json();
