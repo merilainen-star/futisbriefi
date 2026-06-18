@@ -7,6 +7,7 @@
   "scripts": {
     "odds": "tsx src/cli/odds.ts",
     "fotmob": "tsx src/cli/fotmob.ts",
+    "seed": "tsx src/cli/seed.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

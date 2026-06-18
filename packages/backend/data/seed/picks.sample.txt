@@ -1,0 +1,6 @@
+# Futisbriefi — sample picks. One per line, FIFA home–away order: HOME–AWAY h–a
+# Teams separated by an EN DASH "–" (not a hyphen). Blank / # lines ignored.
+Portugal–DR Congo 1–1
+Ivory Coast–Ecuador 2–1
+Netherlands–Canada 2–0
+England–Serbia 2–0
