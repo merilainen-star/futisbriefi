@@ -46,8 +46,15 @@ export interface AppConfig {
   };
   fotmob: {
     client: FotmobClientName;
+    userAgent: string;
+    /** Optional override header (e.g. x-fm-req) if FotMob re-locks the API. */
+    token: string | undefined;
   };
 }
+
+const DEFAULT_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+  '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 export function loadConfig(): AppConfig {
   const provider = env('ODDS_PROVIDER', 'mock') as OddsProviderName;
@@ -63,6 +70,8 @@ export function loadConfig(): AppConfig {
     },
     fotmob: {
       client: env('FOTMOB_CLIENT', 'json') as FotmobClientName,
+      userAgent: env('FOTMOB_UA', DEFAULT_UA),
+      token: process.env.FOTMOB_TOKEN || undefined,
     },
   };
 }

@@ -3,7 +3,6 @@
   "compilerOptions": {
     "types": ["node"],
     "outDir": "./dist",
-    "rootDir": "./src",
     "paths": {
       "@fm2026/core": ["../core/src/index.ts"]
     }
