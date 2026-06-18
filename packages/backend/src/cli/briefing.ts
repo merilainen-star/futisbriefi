@@ -44,8 +44,10 @@ async function main(): Promise<void> {
   console.log(`Wrote briefing for ${doc.date} → ${OUT}`);
   console.log(`  ${doc.cards.length} cards, ${doc.recap.length} recap item(s)\n`);
   for (const c of doc.cards) {
-    const rec = c.recommendation ? ` [${c.recommendation}]` : '';
-    console.log(`  • ${c.homeTeam}–${c.awayTeam}${rec}`);
+    const fav = c.marketFavorite
+      ? ` [suosikki ${c.marketFavorite.outcome} ${(c.marketFavorite.prob * 100).toFixed(0)}%]`
+      : '';
+    console.log(`  • ${c.homeTeam}–${c.awayTeam}${fav}`);
   }
 }
 

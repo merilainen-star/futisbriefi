@@ -1,10 +1,13 @@
 import type { Outcome } from './teams.js';
-import type { PickOutcome, Recommendation } from './types.js';
 
 /**
  * The briefing "document" — the contract between the backend (which builds it)
  * and the PWA (which renders it). Written to briefing.json. All times UTC;
  * the UI converts to Helsinki for display.
+ *
+ * This is a direct market + team-news analysis: odds, margin-removed
+ * probabilities, the market's own favorite, lineups and injuries. It does not
+ * compare against stored picks or recommend holding/switching.
  */
 
 export interface CardOdds {
@@ -54,9 +57,8 @@ export interface BriefingCard {
   koUtc: string;
   venue?: string;
   odds?: CardOdds;
-  pick?: { homeGoals: number; awayGoals: number; locked?: boolean };
-  recommendation?: Recommendation;
-  favorite?: { outcome: Outcome; prob: number };
+  /** The market's most likely 1X2 outcome and its margin-removed probability. */
+  marketFavorite?: { outcome: Outcome; prob: number };
   lineup?: CardLineup;
   /** Finnish, human-readable analysis lines. */
   notes: string[];
@@ -66,9 +68,7 @@ export interface RecapItem {
   matchId: string;
   homeTeam: string;
   awayTeam: string;
-  pick?: { homeGoals: number; awayGoals: number };
   result: { homeGoals: number; awayGoals: number };
-  outcome: PickOutcome;
 }
 
 export interface BriefingDoc {
@@ -78,6 +78,6 @@ export interface BriefingDoc {
   tz: string;
   /** Upcoming matches in the 24h window. */
   cards: BriefingCard[];
-  /** Previous window's finished matches scored against my picks. */
+  /** Previous window's finished matches (final scores). */
   recap: RecapItem[];
 }

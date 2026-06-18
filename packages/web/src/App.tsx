@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
   OUTCOME_CODE,
-  PICK_OUTCOME_FI,
-  RECOMMENDATION_FI,
+  OUTCOME_FI,
   type BriefingCard,
   type BriefingDoc,
   type CardTeamLineup,
-  type Recommendation,
 } from './briefing.ts';
 import { formatKickoff, pct, scoreline } from './format.ts';
 
@@ -43,13 +41,9 @@ export function App() {
           <h2>Edellisen ikkunan tulokset</h2>
           {doc.recap.map((r) => (
             <div key={r.matchId} className="recap-row">
-              <span>{scoreline(r.homeTeam, r.awayTeam, r.result.homeGoals, r.result.awayGoals)}</span>
-              {r.pick && (
-                <span className="muted">
-                  veikkaus {r.pick.homeGoals}–{r.pick.awayGoals}
-                </span>
-              )}
-              <span className={`tag outcome-${r.outcome}`}>{PICK_OUTCOME_FI[r.outcome]}</span>
+              <span>
+                {scoreline(r.homeTeam, r.awayTeam, r.result.homeGoals, r.result.awayGoals)}
+              </span>
             </div>
           ))}
         </section>
@@ -69,23 +63,26 @@ export function App() {
   );
 }
 
-function RecBadge({ rec }: { rec?: Recommendation }) {
-  if (!rec) return <span className="muted">–</span>;
-  return <span className={`badge rec-${rec.toLowerCase()}`}>{RECOMMENDATION_FI[rec]}</span>;
+function Favorite({ card }: { card: BriefingCard }) {
+  if (!card.marketFavorite) return <span className="muted">–</span>;
+  return (
+    <span className="badge fav">
+      {OUTCOME_CODE[card.marketFavorite.outcome]} {pct(card.marketFavorite.prob)}
+    </span>
+  );
 }
 
 function DecisionTable({ cards }: { cards: BriefingCard[] }) {
   return (
     <section className="table-wrap">
-      <h2>Päätöstaulukko</h2>
+      <h2>Analyysitaulukko</h2>
       <table className="decision">
         <thead>
           <tr>
             <th>Ottelu</th>
             <th>Klo</th>
             <th>1 / X / 2</th>
-            <th>Veikkaus</th>
-            <th>Suositus</th>
+            <th>Suosikki</th>
           </tr>
         </thead>
         <tbody>
@@ -102,9 +99,8 @@ function DecisionTable({ cards }: { cards: BriefingCard[] }) {
                   ? `${pct(c.odds.impliedHome)} / ${pct(c.odds.impliedDraw)} / ${pct(c.odds.impliedAway)}`
                   : '–'}
               </td>
-              <td className="nowrap">{c.pick ? `${c.pick.homeGoals}–${c.pick.awayGoals}` : '–'}</td>
               <td>
-                <RecBadge rec={c.recommendation} />
+                <Favorite card={c} />
               </td>
             </tr>
           ))}
@@ -139,7 +135,11 @@ function MatchCard({ card }: { card: BriefingCard }) {
         <h3>
           {card.homeTeam}–{card.awayTeam}
         </h3>
-        <RecBadge rec={card.recommendation} />
+        {card.marketFavorite && (
+          <span className="badge fav">
+            Suosikki {OUTCOME_CODE[card.marketFavorite.outcome]} ({pct(card.marketFavorite.prob)})
+          </span>
+        )}
       </div>
       <p className="muted small">
         {card.group ? `${card.group} · ` : ''}
@@ -153,20 +153,9 @@ function MatchCard({ card }: { card: BriefingCard }) {
           <p className="small muted">
             Kertoimet {card.odds.home} / {card.odds.draw} / {card.odds.away} ({card.odds.bookmaker})
             · marginaali {pct(card.odds.overround)}
+            {card.marketFavorite ? ` · suosikki ${OUTCOME_FI[card.marketFavorite.outcome]}` : ''}
           </p>
         </>
-      )}
-
-      {card.pick && (
-        <p className="pick">
-          Veikkaukseni: <strong>{card.pick.homeGoals}–{card.pick.awayGoals}</strong>
-          {card.favorite && (
-            <span className="muted">
-              {' '}
-              · markkinan suosikki {OUTCOME_CODE[card.favorite.outcome]} ({pct(card.favorite.prob)})
-            </span>
-          )}
-        </p>
       )}
 
       {card.lineup && (

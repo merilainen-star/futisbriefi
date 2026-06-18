@@ -4,9 +4,7 @@
  * dependency on the backend/core TS source.
  */
 
-export type Recommendation = 'Hold' | 'Switch' | 'Risky' | 'Locked';
 export type Outcome = 'home' | 'draw' | 'away';
-export type PickOutcome = 'exact' | 'result' | 'miss';
 
 export interface CardOdds {
   home: number;
@@ -54,9 +52,7 @@ export interface BriefingCard {
   koUtc: string;
   venue?: string;
   odds?: CardOdds;
-  pick?: { homeGoals: number; awayGoals: number; locked?: boolean };
-  recommendation?: Recommendation;
-  favorite?: { outcome: Outcome; prob: number };
+  marketFavorite?: { outcome: Outcome; prob: number };
   lineup?: CardLineup;
   notes: string[];
 }
@@ -65,9 +61,7 @@ export interface RecapItem {
   matchId: string;
   homeTeam: string;
   awayTeam: string;
-  pick?: { homeGoals: number; awayGoals: number };
   result: { homeGoals: number; awayGoals: number };
-  outcome: PickOutcome;
 }
 
 export interface BriefingDoc {
@@ -78,17 +72,10 @@ export interface BriefingDoc {
   recap: RecapItem[];
 }
 
-export const RECOMMENDATION_FI: Record<Recommendation, string> = {
-  Hold: 'Pidä',
-  Switch: 'Vaihda',
-  Risky: 'Riskialtis',
-  Locked: 'Lukittu',
-};
-
 export const OUTCOME_CODE: Record<Outcome, string> = { home: '1', draw: 'X', away: '2' };
 
-export const PICK_OUTCOME_FI: Record<PickOutcome, string> = {
-  exact: 'Täysosuma',
-  result: 'Oikea tulos',
-  miss: 'Ohi',
+export const OUTCOME_FI: Record<Outcome, string> = {
+  home: 'kotivoitto',
+  draw: 'tasapeli',
+  away: 'vierasvoitto',
 };

@@ -28,14 +28,17 @@ describe('buildBriefing (demo pipeline)', () => {
     expect(doc.date).toBe('2026-06-18');
   });
 
-  it('attaches odds + normalized probabilities + a recommendation', async () => {
+  it('attaches odds + normalized probabilities + the market favorite (no pick)', async () => {
     const doc = await buildDemo();
     const card = doc.cards.find((c) => c.homeTeam === 'Portugal')!;
     expect(card.odds).toBeDefined();
     const sum = card.odds!.impliedHome + card.odds!.impliedDraw + card.odds!.impliedAway;
     expect(sum).toBeCloseTo(1, 10);
-    expect(card.pick).toEqual({ homeGoals: 1, awayGoals: 1, locked: false });
-    expect(card.recommendation).toBeDefined();
+    expect(card.marketFavorite?.outcome).toBe('home'); // Portugal clear favorite
+    expect(card.marketFavorite!.prob).toBeGreaterThan(0.6);
+    // Direct analysis only — no pick/recommendation fields.
+    expect('pick' in card).toBe(false);
+    expect('recommendation' in card).toBe(false);
   });
 
   it('enriches the FotMob-linked card with real XIs and injuries', async () => {
@@ -47,13 +50,13 @@ describe('buildBriefing (demo pipeline)', () => {
     expect(card.lineup!.home.unavailable.length).toBeGreaterThan(0);
   });
 
-  it('scores the previous window as a results recap (exact hit)', async () => {
+  it('lists the previous window as a results recap (final scores)', async () => {
     const doc = await buildDemo();
     expect(doc.recap).toHaveLength(1);
     expect(doc.recap[0]).toMatchObject({
       homeTeam: 'England',
       awayTeam: 'Serbia',
-      outcome: 'exact',
+      result: { homeGoals: 2, awayGoals: 0 },
     });
   });
 });

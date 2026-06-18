@@ -1,14 +1,11 @@
 import {
-  formatScoreline,
   impliedProbabilities,
+  marketFavorite,
   OUTCOME_CODE,
   OUTCOME_FI,
-  recommend,
-  RECOMMENDATION_FI,
   type BriefingCard,
   type CardOdds,
   type Match,
-  type Pick,
 } from '@fm2026/core';
 import type { MarketOdds } from '../odds/provider.js';
 import type { FotmobMatchDetails, FotmobTeamLineup } from '../fotmob/types.js';
@@ -45,13 +42,12 @@ function teamLineup(t: FotmobTeamLineup) {
 }
 
 /**
- * Build one Finnish briefing card from a match plus whatever data we have.
- * Pure: no I/O. Reused by the live builder and the demo builder.
+ * Build one Finnish briefing card from a match plus whatever data we have:
+ * a direct market + team-news analysis (no pick comparison). Pure: no I/O.
  */
 export function assembleCard(
   match: Match,
   market: MarketOdds | undefined,
-  pick: Pick | undefined,
   details: FotmobMatchDetails | undefined,
 ): BriefingCard {
   const notes: string[] = [];
@@ -67,49 +63,23 @@ export function assembleCard(
 
   if (market) {
     card.odds = toCardOdds(market);
+    const fav = marketFavorite({
+      home: card.odds.impliedHome,
+      draw: card.odds.impliedDraw,
+      away: card.odds.impliedAway,
+      overround: card.odds.overround,
+    });
+    card.marketFavorite = fav;
     notes.push(
       `Markkina (${market.bookmaker}): 1 ${market.home} / X ${market.draw} / 2 ${market.away} ` +
         `→ normalisoidut ${pct(card.odds.impliedHome)} / ${pct(card.odds.impliedDraw)} / ` +
         `${pct(card.odds.impliedAway)} (marginaali ${pct(card.odds.overround)}).`,
     );
+    notes.push(
+      `Markkinan suosikki: ${OUTCOME_CODE[fav.outcome]} (${OUTCOME_FI[fav.outcome]}) ${pct(fav.prob)}.`,
+    );
   } else {
     notes.push('Kertoimia ei saatavilla.');
-  }
-
-  if (pick) {
-    card.pick = { homeGoals: pick.homeGoals, awayGoals: pick.awayGoals, locked: !!pick.lockedAt };
-    const pickStr = formatScoreline(
-      match.homeTeam,
-      match.awayTeam,
-      pick.homeGoals,
-      pick.awayGoals,
-    );
-
-    if (card.odds) {
-      const r = recommend({
-        pickHomeGoals: pick.homeGoals,
-        pickAwayGoals: pick.awayGoals,
-        implied: {
-          home: card.odds.impliedHome,
-          draw: card.odds.impliedDraw,
-          away: card.odds.impliedAway,
-          overround: card.odds.overround,
-        },
-        locked: !!pick.lockedAt,
-      });
-      card.recommendation = r.recommendation;
-      card.favorite = r.favorite;
-      notes.push(
-        `Markkinan suosikki: ${OUTCOME_CODE[r.favorite.outcome]} ` +
-          `(${OUTCOME_FI[r.favorite.outcome]}) ${pct(r.favorite.prob)}. ` +
-          `Veikkaus ${pickStr} → ${OUTCOME_CODE[r.pickOutcome]}. ` +
-          `Suositus: ${RECOMMENDATION_FI[r.recommendation]}.`,
-      );
-    } else {
-      notes.push(`Veikkaus: ${pickStr}.`);
-    }
-  } else {
-    notes.push('Ei tallennettua veikkausta.');
   }
 
   if (details) {

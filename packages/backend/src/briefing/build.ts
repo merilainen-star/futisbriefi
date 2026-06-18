@@ -2,7 +2,6 @@ import {
   briefingWindow,
   impliedProbabilities,
   matchesInWindow,
-  scorePick,
   type BriefingDoc,
   type RecapItem,
 } from '@fm2026/core';
@@ -37,8 +36,8 @@ export interface BuildBriefingDeps {
 
 /**
  * Assemble the full briefing document for the 24h window around `now`:
- *  - upcoming matches → cards (odds + normalized probs + pick vs market + lineup)
- *  - previous window's finished matches → results recap vs my picks
+ *  - upcoming matches → cards (odds + normalized probs + market favorite + lineup)
+ *  - previous window's finished matches → results recap (final scores)
  *
  * This is the same pipeline a scheduled job (GitHub Action at 18:00 Helsinki)
  * will run; only the trigger differs.
@@ -72,7 +71,6 @@ export async function buildBriefing(deps: BuildBriefingDeps): Promise<BriefingDo
       });
     }
 
-    const pick = deps.store.getPick(match.id);
     let details;
     if (match.fotmobId) {
       try {
@@ -81,28 +79,20 @@ export async function buildBriefing(deps: BuildBriefingDeps): Promise<BriefingDo
         details = undefined;
       }
     }
-    cards.push(assembleCard(match, market, pick, details));
+    cards.push(assembleCard(match, market, details));
   }
 
-  // Results recap: finished matches in the PREVIOUS window.
+  // Results recap: finished matches in the PREVIOUS window (final scores).
   const prevWindow = briefingWindow(new Date(window.startUtc.getTime() - 1), tz);
   const recap: RecapItem[] = [];
   for (const match of matchesInWindow(allMatches, prevWindow)) {
     const result = deps.store.getResult(match.id);
     if (!result || result.status !== 'finished') continue;
-    const pick = deps.store.getPick(match.id);
     recap.push({
       matchId: match.id,
       homeTeam: match.homeTeam,
       awayTeam: match.awayTeam,
-      pick: pick ? { homeGoals: pick.homeGoals, awayGoals: pick.awayGoals } : undefined,
       result: { homeGoals: result.homeGoals, awayGoals: result.awayGoals },
-      outcome: pick
-        ? scorePick(
-            { homeGoals: pick.homeGoals, awayGoals: pick.awayGoals },
-            { homeGoals: result.homeGoals, awayGoals: result.awayGoals },
-          )
-        : 'miss',
     });
   }
 

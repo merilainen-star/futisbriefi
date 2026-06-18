@@ -103,6 +103,9 @@ table.decision {
   background: var(--locked);
   color: #eaf2f8;
 }
+.badge.fav {
+  background: var(--accent);
+}
 
 /* Recap */
 .recap-row {
