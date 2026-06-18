@@ -57,7 +57,10 @@ export interface FotmobFixture {
   finished: boolean;
   leagueId: number;
   leagueName: string;
-  /** FotMob group label when present, e.g. "EURO Grp. F". */
+  /** Parent league id — World Cup finals = 77. */
+  parentLeagueId?: number;
+  parentLeagueName?: string;
+  /** FotMob group label when present, e.g. "World Cup Grp. A". */
   groupName?: string;
 }
 

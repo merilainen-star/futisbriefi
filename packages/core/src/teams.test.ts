@@ -1,5 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { EN_DASH, formatFixture, formatScoreline, scoreOutcome } from './teams.js';
+import {
+  canonicalTeam,
+  EN_DASH,
+  formatFixture,
+  formatScoreline,
+  scoreOutcome,
+} from './teams.js';
+
+describe('canonicalTeam (cross-source name matching)', () => {
+  it('folds known aliases to one key', () => {
+    expect(canonicalTeam('Czechia')).toBe(canonicalTeam('Czech Republic'));
+    expect(canonicalTeam('South Korea')).toBe(canonicalTeam('Korea Republic'));
+    expect(canonicalTeam('USA')).toBe(canonicalTeam('United States'));
+  });
+
+  it('normalizes punctuation and "&" / "and"', () => {
+    expect(canonicalTeam('Bosnia & Herzegovina')).toBe(canonicalTeam('Bosnia and Herzegovina'));
+    expect(canonicalTeam("Côte d'Ivoire")).toBe(canonicalTeam('Cote divoire'));
+  });
+
+  it('handles accents (Türkiye → Turkey)', () => {
+    expect(canonicalTeam('Türkiye')).toBe(canonicalTeam('Turkey'));
+  });
+
+  it('leaves distinct teams distinct', () => {
+    expect(canonicalTeam('Ecuador')).not.toBe(canonicalTeam('Portugal'));
+  });
+});
 
 describe('FIFA home-away ordering', () => {
   it('formats the fixture home team first with an en dash', () => {

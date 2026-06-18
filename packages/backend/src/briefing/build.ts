@@ -1,29 +1,26 @@
 import {
   briefingWindow,
+  canonicalTeam,
   impliedProbabilities,
   matchesInWindow,
   type BriefingDoc,
   type RecapItem,
 } from '@fm2026/core';
+import type { Match } from '@fm2026/core';
 import type { Store } from '../store/store.js';
 import type { OddsProvider, MarketOdds } from '../odds/provider.js';
 import type { FotMobClient } from '../fotmob/types.js';
 import { assembleCard } from './assemble.js';
 
-/** Loose team-name match (e.g. "Türkiye" vs "Turkiye", trailing spaces). */
-function teamKey(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, '')
-    .trim();
-}
-
 function findMarket(markets: MarketOdds[], home: string, away: string): MarketOdds | undefined {
-  const hk = teamKey(home);
-  const ak = teamKey(away);
-  return markets.find((m) => teamKey(m.homeTeam) === hk && teamKey(m.awayTeam) === ak);
+  const hk = canonicalTeam(home);
+  const ak = canonicalTeam(away);
+  // Try both orientations: a neutral-venue source may flip home/away vs FIFA.
+  return markets.find(
+    (m) =>
+      (canonicalTeam(m.homeTeam) === hk && canonicalTeam(m.awayTeam) === ak) ||
+      (canonicalTeam(m.homeTeam) === ak && canonicalTeam(m.awayTeam) === hk),
+  );
 }
 
 export interface BuildBriefingDeps {
@@ -32,6 +29,11 @@ export interface BuildBriefingDeps {
   fotmob: FotMobClient;
   now?: Date;
   tz?: string;
+  /**
+   * Matches to consider. Defaults to everything in the store; live mode passes
+   * just the freshly-synced fixtures so a stale store can't leak old matches in.
+   */
+  matches?: Match[];
 }
 
 /**
@@ -47,7 +49,7 @@ export async function buildBriefing(deps: BuildBriefingDeps): Promise<BriefingDo
   const tz = deps.tz ?? 'Europe/Helsinki';
   const window = briefingWindow(now, tz);
 
-  const allMatches = deps.store.listMatches();
+  const allMatches = deps.matches ?? deps.store.listMatches();
   const upcoming = matchesInWindow(allMatches, window);
 
   const markets = await deps.odds.fetchOdds();

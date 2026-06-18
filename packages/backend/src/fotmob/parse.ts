@@ -85,6 +85,8 @@ export function parseFixturesByDate(json: any): FotmobFixture[] {
         finished: Boolean(m?.status?.finished),
         leagueId: Number(league?.id),
         leagueName: String(league?.name ?? ''),
+        parentLeagueId: league?.parentLeagueId != null ? Number(league.parentLeagueId) : undefined,
+        parentLeagueName: league?.parentLeagueName ?? undefined,
         groupName: league?.isGroup ? (league?.name ?? undefined) : undefined,
       });
     }

@@ -107,18 +107,24 @@ export function assembleCard(
   }
 
   if (details) {
-    card.lineup = {
-      confirmedXI: details.confirmedXI,
-      lineupType: details.lineupType,
-      home: teamLineup(details.home),
-      away: teamLineup(details.away),
-    };
-    if (!details.confirmedXI) {
-      notes.push('Kokoonpano on ENNUSTE — varmista vahvistettu XI n. 1 h ennen ottelua.');
+    const hasXI = details.home.starters.length > 0 || details.away.starters.length > 0;
+    if (hasXI) {
+      card.lineup = {
+        confirmedXI: details.confirmedXI,
+        lineupType: details.lineupType,
+        home: teamLineup(details.home),
+        away: teamLineup(details.away),
+      };
+      if (!details.confirmedXI) {
+        notes.push('Kokoonpano on ENNUSTE — varmista vahvistettu XI n. 1 h ennen ottelua.');
+      }
     }
     const inj = [...details.home.unavailable, ...details.away.unavailable];
     if (inj.length) {
       notes.push(`Poissa (${inj.length}): ${inj.map((u) => u.name).join(', ')}.`);
+    }
+    if (!hasXI && inj.length === 0) {
+      notes.push('Kokoonpanoa ei ole vielä julkaistu (FotMob).');
     }
   } else if (match.fotmobId) {
     notes.push('FotMob-kokoonpanoa ei saatu haettua.');
