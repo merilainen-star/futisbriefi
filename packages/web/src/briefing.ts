@@ -44,6 +44,21 @@ export interface CardLineup {
   away: CardTeamLineup;
 }
 
+export interface ScorelineProb {
+  homeGoals: number;
+  awayGoals: number;
+  prob: number;
+}
+
+export interface ScorePrediction {
+  homeGoals: number;
+  awayGoals: number;
+  prob: number;
+  top: ScorelineProb[];
+  expectedHome: number;
+  expectedAway: number;
+}
+
 export interface BriefingCard {
   matchId: string;
   group?: string;
@@ -53,6 +68,7 @@ export interface BriefingCard {
   venue?: string;
   odds?: CardOdds;
   marketFavorite?: { outcome: Outcome; prob: number };
+  prediction?: ScorePrediction;
   lineup?: CardLineup;
   notes: string[];
 }

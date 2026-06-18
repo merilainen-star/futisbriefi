@@ -5,6 +5,8 @@ import type { MarketOdds, OddsProvider } from './provider.js';
 export interface OddsApiOutcome {
   name: string;
   price: number;
+  /** Present on totals/spreads outcomes (e.g. the 2.5 line). */
+  point?: number;
 }
 export interface OddsApiMarket {
   key: string;
@@ -23,12 +25,33 @@ export interface OddsApiEvent {
   bookmakers: OddsApiBookmaker[];
 }
 
+/** Pick the over/under closest to the 2.5 line from any bookmaker on the event. */
+function extractTotals(
+  bookmakers: OddsApiBookmaker[],
+): { line: number; over: number; under: number } | undefined {
+  let best: { line: number; over: number; under: number; dist: number } | undefined;
+  for (const bm of bookmakers ?? []) {
+    const totals = bm.markets?.find((m) => m.key === 'totals');
+    if (!totals) continue;
+    const over = totals.outcomes.find((o) => o.name === 'Over');
+    const under = totals.outcomes.find((o) => o.name === 'Under');
+    if (!over || !under || over.point === undefined) continue;
+    const dist = Math.abs(over.point - 2.5);
+    if (!best || dist < best.dist) {
+      best = { line: over.point, over: over.price, under: under.price, dist };
+    }
+  }
+  if (!best) return undefined;
+  return { line: best.line, over: best.over, under: best.under };
+}
+
 /**
  * Pure parser (no network) so it can be unit-tested against a captured payload.
  *
  * For each event we take the FIRST bookmaker that offers a complete h2h (1X2)
  * market. The Odds API names the draw outcome "Draw" and the home/away outcomes
- * by team name — we map by identity, never by array position.
+ * by team name — we map by identity, never by array position. Totals (over/under)
+ * are taken from whichever bookmaker has a line nearest 2.5.
  */
 export function parseOddsApiResponse(
   events: OddsApiEvent[],
@@ -58,6 +81,7 @@ export function parseOddsApiResponse(
         home,
         draw,
         away,
+        overUnder: extractTotals(ev.bookmakers ?? []),
         bookmaker: bm.title,
         source,
         capturedAt,

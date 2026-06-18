@@ -15,6 +15,12 @@ export interface MarketOdds {
   home: number;
   draw: number;
   away: number;
+  /** Over/under (totals) market, when available — anchors the goals model. */
+  overUnder?: {
+    line: number;
+    over: number;
+    under: number;
+  };
   /** Which bookmaker these prices came from (or an aggregate label). */
   bookmaker: string;
   /** Provider name, e.g. "theoddsapi" | "mock". */

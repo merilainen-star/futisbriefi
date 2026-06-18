@@ -15,6 +15,7 @@ export class MockOddsProvider implements OddsProvider {
     const capturedAt = base.toISOString();
     const inHours = (h: number) => new Date(base.getTime() + h * 3_600_000).toISOString();
 
+    const ou = (line: number, over: number, under: number) => ({ line, over, under });
     const rows: Array<Omit<MarketOdds, 'source' | 'capturedAt'>> = [
       {
         homeTeam: 'Portugal',
@@ -23,6 +24,7 @@ export class MockOddsProvider implements OddsProvider {
         home: 1.4,
         draw: 4.6,
         away: 8.5,
+        overUnder: ou(2.5, 1.7, 2.1),
         bookmaker: 'MockBook',
       },
       {
@@ -32,6 +34,7 @@ export class MockOddsProvider implements OddsProvider {
         home: 2.45,
         draw: 3.1,
         away: 3.0,
+        overUnder: ou(2.5, 2.05, 1.75),
         bookmaker: 'MockBook',
       },
       {
@@ -41,6 +44,7 @@ export class MockOddsProvider implements OddsProvider {
         home: 1.75,
         draw: 3.7,
         away: 4.6,
+        overUnder: ou(2.5, 1.9, 1.9),
         bookmaker: 'MockBook',
       },
       {
@@ -52,6 +56,7 @@ export class MockOddsProvider implements OddsProvider {
         home: 6.5,
         draw: 4.5,
         away: 1.5,
+        overUnder: ou(3.0, 1.9, 1.9),
         bookmaker: 'MockBook',
       },
     ];

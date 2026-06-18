@@ -63,15 +63,6 @@ export function App() {
   );
 }
 
-function Favorite({ card }: { card: BriefingCard }) {
-  if (!card.marketFavorite) return <span className="muted">–</span>;
-  return (
-    <span className="badge fav">
-      {OUTCOME_CODE[card.marketFavorite.outcome]} {pct(card.marketFavorite.prob)}
-    </span>
-  );
-}
-
 function DecisionTable({ cards }: { cards: BriefingCard[] }) {
   return (
     <section className="table-wrap">
@@ -81,8 +72,8 @@ function DecisionTable({ cards }: { cards: BriefingCard[] }) {
           <tr>
             <th>Ottelu</th>
             <th>Klo</th>
+            <th>Ennuste</th>
             <th>1 / X / 2</th>
-            <th>Suosikki</th>
           </tr>
         </thead>
         <tbody>
@@ -95,12 +86,18 @@ function DecisionTable({ cards }: { cards: BriefingCard[] }) {
               </td>
               <td className="nowrap">{formatKickoff(c.koUtc)}</td>
               <td className="nowrap">
+                {c.prediction ? (
+                  <strong className="pred-score">
+                    {c.prediction.homeGoals}–{c.prediction.awayGoals}
+                  </strong>
+                ) : (
+                  '–'
+                )}
+              </td>
+              <td className="nowrap">
                 {c.odds
                   ? `${pct(c.odds.impliedHome)} / ${pct(c.odds.impliedDraw)} / ${pct(c.odds.impliedAway)}`
                   : '–'}
-              </td>
-              <td>
-                <Favorite card={c} />
               </td>
             </tr>
           ))}
@@ -146,6 +143,30 @@ function MatchCard({ card }: { card: BriefingCard }) {
         {formatKickoff(card.koUtc)}
         {card.venue ? ` · ${card.venue}` : ''}
       </p>
+
+      {card.prediction && (
+        <div className="prediction">
+          <div className="pred-main">
+            <span className="pred-label">Tarkka ennuste</span>
+            <span className="pred-big">
+              {card.prediction.homeGoals}–{card.prediction.awayGoals}
+            </span>
+            <span className="muted small">{pct(card.prediction.prob)}</span>
+          </div>
+          <div className="pred-alts">
+            {card.prediction.top.slice(1, 4).map((s) => (
+              <span key={`${s.homeGoals}-${s.awayGoals}`} className="pred-alt">
+                {s.homeGoals}–{s.awayGoals}
+                <span className="muted"> {pct(s.prob)}</span>
+              </span>
+            ))}
+            <span className="muted small">
+              odotetut maalit {card.prediction.expectedHome.toFixed(2)}–
+              {card.prediction.expectedAway.toFixed(2)}
+            </span>
+          </div>
+        </div>
+      )}
 
       {card.odds && (
         <>

@@ -66,7 +66,7 @@ export function loadConfig(): AppConfig {
       apiKey: process.env.ODDS_API_KEY || undefined,
       sportKey: env('ODDS_SPORT_KEY', 'soccer_fifa_world_cup'),
       regions: env('ODDS_REGIONS', 'eu'),
-      markets: env('ODDS_MARKETS', 'h2h'),
+      markets: env('ODDS_MARKETS', 'h2h,totals'),
     },
     fotmob: {
       client: env('FOTMOB_CLIENT', 'json') as FotmobClientName,

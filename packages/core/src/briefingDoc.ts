@@ -1,3 +1,4 @@
+import type { ScorePrediction } from './score.js';
 import type { Outcome } from './teams.js';
 
 /**
@@ -59,6 +60,8 @@ export interface BriefingCard {
   odds?: CardOdds;
   /** The market's most likely 1X2 outcome and its margin-removed probability. */
   marketFavorite?: { outcome: Outcome; prob: number };
+  /** Most likely exact score (Poisson model from odds + over/under). */
+  prediction?: ScorePrediction;
   lineup?: CardLineup;
   /** Finnish, human-readable analysis lines. */
   notes: string[];

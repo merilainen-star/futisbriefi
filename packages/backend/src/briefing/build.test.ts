@@ -39,6 +39,10 @@ describe('buildBriefing (demo pipeline)', () => {
     // Direct analysis only — no pick/recommendation fields.
     expect('pick' in card).toBe(false);
     expect('recommendation' in card).toBe(false);
+    // Exact-score prediction present and home-leaning.
+    expect(card.prediction).toBeDefined();
+    expect(card.prediction!.homeGoals).toBeGreaterThan(card.prediction!.awayGoals);
+    expect(card.prediction!.top.length).toBeGreaterThan(1);
   });
 
   it('enriches the FotMob-linked card with real XIs and injuries', async () => {

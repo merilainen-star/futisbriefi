@@ -1,8 +1,10 @@
 import {
+  EN_DASH,
   impliedProbabilities,
   marketFavorite,
   OUTCOME_CODE,
   OUTCOME_FI,
+  predictScore,
   type BriefingCard,
   type CardOdds,
   type Match,
@@ -77,6 +79,28 @@ export function assembleCard(
     );
     notes.push(
       `Markkinan suosikki: ${OUTCOME_CODE[fav.outcome]} (${OUTCOME_FI[fav.outcome]}) ${pct(fav.prob)}.`,
+    );
+
+    // Exact-score prediction (Poisson; anchored by over/under when available).
+    const prediction = predictScore(
+      {
+        home: card.odds.impliedHome,
+        draw: card.odds.impliedDraw,
+        away: card.odds.impliedAway,
+      },
+      market.overUnder ? { overUnder: market.overUnder } : {},
+    );
+    card.prediction = prediction;
+    const sl = (s: { homeGoals: number; awayGoals: number }) =>
+      `${s.homeGoals}${EN_DASH}${s.awayGoals}`;
+    const alts = prediction.top
+      .slice(1, 4)
+      .map(sl)
+      .join(', ');
+    notes.push(
+      `Tarkka ennuste: ${sl(prediction)} (${pct(prediction.prob)})` +
+        (alts ? `. Muut: ${alts}.` : '.') +
+        ` Odotetut maalit ${prediction.expectedHome.toFixed(2)}${EN_DASH}${prediction.expectedAway.toFixed(2)}.`,
     );
   } else {
     notes.push('Kertoimia ei saatavilla.');
