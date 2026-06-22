@@ -56,32 +56,48 @@ export async function buildBriefing(deps: BuildBriefingDeps): Promise<BriefingDo
 
   const cards = [];
   for (const match of upcoming) {
-    const market = findMarket(markets, match.homeTeam, match.awayTeam);
-    if (market) {
-      // Persist an odds snapshot so movement can be computed later.
-      const p = impliedProbabilities({ home: market.home, draw: market.draw, away: market.away });
-      deps.store.insertOdds({
-        matchId: match.id,
-        source: market.source,
-        home: market.home,
-        draw: market.draw,
-        away: market.away,
-        capturedAt: market.capturedAt,
-        impliedHome: p.home,
-        impliedDraw: p.draw,
-        impliedAway: p.away,
-      });
-    }
-
-    let details;
-    if (match.fotmobId) {
-      try {
-        details = await deps.fotmob.getMatchDetails(match.fotmobId);
-      } catch {
-        details = undefined;
+    // A single bad match must never sink the whole briefing.
+    try {
+      let market = findMarket(markets, match.homeTeam, match.awayTeam);
+      if (market) {
+        try {
+          // Persist an odds snapshot so movement can be computed later.
+          const p = impliedProbabilities({
+            home: market.home,
+            draw: market.draw,
+            away: market.away,
+          });
+          deps.store.insertOdds({
+            matchId: match.id,
+            source: market.source,
+            home: market.home,
+            draw: market.draw,
+            away: market.away,
+            capturedAt: market.capturedAt,
+            impliedHome: p.home,
+            impliedDraw: p.draw,
+            impliedAway: p.away,
+          });
+        } catch (err) {
+          // Bad odds (e.g. a price of 1.0) — drop the market, keep the card.
+          console.warn(`Skipping odds for ${match.homeTeam}–${match.awayTeam}: ${String(err)}`);
+          market = undefined;
+        }
       }
+
+      let details;
+      if (match.fotmobId) {
+        try {
+          details = await deps.fotmob.getMatchDetails(match.fotmobId);
+        } catch {
+          details = undefined;
+        }
+      }
+      cards.push(assembleCard(match, market, details));
+    } catch (err) {
+      console.warn(`Skipping match ${match.homeTeam}–${match.awayTeam}: ${String(err)}`);
+      cards.push(assembleCard(match, undefined, undefined));
     }
-    cards.push(assembleCard(match, market, details));
   }
 
   // Results recap: finished matches in the PREVIOUS window (final scores).

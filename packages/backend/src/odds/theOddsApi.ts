@@ -36,6 +36,7 @@ function extractTotals(
     const over = totals.outcomes.find((o) => o.name === 'Over');
     const under = totals.outcomes.find((o) => o.name === 'Under');
     if (!over || !under || over.point === undefined) continue;
+    if (!(over.price > 1) || !(under.price > 1)) continue; // skip degenerate prices
     const dist = Math.abs(over.point - 2.5);
     if (!best || dist < best.dist) {
       best = { line: over.point, over: over.price, under: under.price, dist };
@@ -72,7 +73,13 @@ export function parseOddsApiResponse(
       const away = priceOf(ev.away_team);
       const draw = priceOf('Draw');
 
-      if (home === undefined || away === undefined || draw === undefined) continue;
+      // Require a complete 1X2 with sane decimal odds (> 1). Some bookmakers
+      // occasionally return a degenerate price like 1.0 for a suspended/closed
+      // market — skip that bookmaker and try the next one rather than emitting
+      // odds the normalizer can't use.
+      const ok = (n: number | undefined): n is number =>
+        typeof n === 'number' && Number.isFinite(n) && n > 1;
+      if (!ok(home) || !ok(away) || !ok(draw)) continue;
 
       out.push({
         homeTeam: ev.home_team,

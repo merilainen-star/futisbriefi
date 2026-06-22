@@ -47,6 +47,50 @@ describe('parseOddsApiResponse', () => {
     expect(p.home + p.draw + p.away).toBeCloseTo(1, 10);
   });
 
+  it('skips a bookmaker with a degenerate price (1.0) and uses the next valid one', () => {
+    const events: OddsApiEvent[] = [
+      {
+        id: 'evt3',
+        commence_time: '2026-06-21T16:00:00Z',
+        home_team: 'A',
+        away_team: 'B',
+        bookmakers: [
+          {
+            key: 'bad',
+            title: 'Bad',
+            markets: [
+              {
+                key: 'h2h',
+                outcomes: [
+                  { name: 'A', price: 1 }, // invalid decimal odds
+                  { name: 'Draw', price: 5 },
+                  { name: 'B', price: 8 },
+                ],
+              },
+            ],
+          },
+          {
+            key: 'good',
+            title: 'Good',
+            markets: [
+              {
+                key: 'h2h',
+                outcomes: [
+                  { name: 'A', price: 1.5 },
+                  { name: 'Draw', price: 4 },
+                  { name: 'B', price: 6 },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const [row] = parseOddsApiResponse(events);
+    expect(row?.bookmaker).toBe('Good');
+    expect(row?.home).toBe(1.5);
+  });
+
   it('skips events whose bookmaker lacks a complete 1X2 market', () => {
     const incomplete: OddsApiEvent[] = [
       {
